@@ -10,6 +10,7 @@ import urllib.parse
 import ssl
 import base64
 import threading
+import json
 
 import ttkbootstrap as ttkb
 from ttkbootstrap.constants import *
@@ -31,8 +32,8 @@ else:
 os.chdir(BASE_DIR)
 sys.path.insert(0, BASE_DIR)
 
-# ===== 卡密保存文件 =====
 CARD_FILE = os.path.join(EXE_DIR, "card.txt")
+DEVICES_FILE = os.path.join(BASE_DIR, "configs", "devices.json")
 
 running_flag = False
 ok_instance = None
@@ -51,15 +52,12 @@ def auto_battle_logic():
         headless_config["use_gui"] = False
         headless_config["check_mutex"] = False
 
-        print(">>> create OK instance")
         ok_instance = OK(headless_config)
-
-        print(">>> calling OK.run_task")
         ok_instance.run_task(AutoBattle, exit_after=False)
     except Exception as e:
         import traceback
-        print(f"自动化运行出错: {e}")
-        traceback.print_exc()
+        with open(os.path.join(EXE_DIR, "debug.log"), "w", encoding="utf-8") as f:
+            f.write(traceback.format_exc())
     finally:
         running_flag = False
 
@@ -76,6 +74,57 @@ def start_ok_script():
 def stop_ok_script():
     global running_flag
     running_flag = False
+
+
+# ===================== 检测模拟器 =====================
+def detect_emulators():
+    try:
+        from ok import OK
+        from src.config import config
+
+        headless_config = dict(config)
+        headless_config.pop("gui", None)
+        headless_config["use_gui"] = False
+        headless_config["check_mutex"] = False
+
+        ok_tmp = OK(headless_config)
+        dm = ok_tmp.device_manager
+        dm.refresh_emulators()
+        devices = dm.get_devices()
+        emu_list = []
+        if isinstance(devices, list):
+            for d in devices:
+                name = d.get("imei") or d.get("nick")
+                if name:
+                    emu_list.append(name)
+        elif isinstance(devices, dict):
+            for k, v in devices.items():
+                emu_list.append(k)
+        return emu_list
+    except Exception as e:
+        import traceback
+        with open(os.path.join(EXE_DIR, "detect.log"), "w", encoding="utf-8") as f:
+            f.write(traceback.format_exc())
+        return []
+
+
+def save_preferred_device(name):
+    try:
+        if os.path.exists(DEVICES_FILE):
+            with open(DEVICES_FILE, "r", encoding="utf-8") as f:
+                cfg = json.load(f)
+        else:
+            cfg = {}
+        cfg["preferred"] = name
+        cfg["capture"] = "adb"
+        cfg["interaction"] = "Pynput"
+        cfg["selected_hwnd"] = 0
+        cfg["selected_exe"] = ""
+        cfg["pc_full_path"] = ""
+        with open(DEVICES_FILE, "w", encoding="utf-8") as f:
+            json.dump(cfg, f, indent=4, ensure_ascii=False)
+    except Exception as e:
+        print(f"save devices failed: {e}")
 
 
 # ===================== 卡密验证 =====================
@@ -206,24 +255,69 @@ def card_verify_window():
 # ===================== 主界面 =====================
 def open_main_window():
     win = ttkb.Window(title="自动战斗", themename="flatly",
-                       size=(460, 420), resizable=(False, False))
-    center_window(win, 460, 420)
+                       size=(480, 480), resizable=(False, False))
+    center_window(win, 480, 480)
 
-    frame = ttkb.Frame(win, padding=40)
+    frame = ttkb.Frame(win, padding=30)
     frame.pack(fill=BOTH, expand=YES)
 
     ttkb.Label(frame, text="闪语-骰子地下城-躲避子弹5",
                font=("微软雅黑", 16, "bold")).pack(pady=(0, 15))
 
+    # ===== 模拟器选择 =====
+    emu_frame = ttkb.Frame(frame)
+    emu_frame.pack(pady=8)
+
+    ttkb.Label(emu_frame, text="模拟器:", font=("微软雅黑", 11)).grid(row=0, column=0, padx=(0, 8))
+
+    emu_var = tk.StringVar(value="")
+    emu_combo = ttkb.Combobox(emu_frame, textvariable=emu_var, width=18,
+                               font=("微软雅黑", 11), state="readonly")
+    emu_combo.grid(row=0, column=1, padx=(0, 8))
+
+    detect_status = ttkb.Label(frame, text="", font=("微软雅黑", 9),
+                                bootstyle="secondary")
+    detect_status.pack(pady=2)
+
+    def do_detect():
+        detect_status.configure(text="正在检测...", bootstyle="warning")
+        win.update()
+
+        def _detect():
+            emus = detect_emulators()
+            def _update():
+                if emus:
+                    emu_combo['values'] = emus
+                    emu_var.set(emus[0])
+                    detect_status.configure(text=f"检测到 {len(emus)} 个模拟器，已自动选择",
+                                             bootstyle="success")
+                else:
+                    detect_status.configure(
+                        text="未检测到模拟器。请确认模拟器已打开，且开启了 ADB 调试",
+                        bootstyle="danger")
+            win.after(0, _update)
+
+        threading.Thread(target=_detect, daemon=True).start()
+
+    ttkb.Button(emu_frame, text="检测", command=do_detect,
+                bootstyle="info", width=6).grid(row=0, column=2)
+
+    # ===== 状态 =====
     status_var = tk.StringVar(value="● 未启动")
     status_label = ttkb.Label(frame, textvariable=status_var,
                                font=("微软雅黑", 13), bootstyle="secondary")
     status_label.pack(pady=15)
 
     btn_frame = ttkb.Frame(frame)
-    btn_frame.pack(pady=25)
+    btn_frame.pack(pady=15)
 
     def start_script():
+        emu = emu_var.get().strip()
+        if not emu:
+            detect_status.configure(text="请先点“检测”选择模拟器",
+                                     bootstyle="danger")
+            return
+        save_preferred_device(emu)
         start_ok_script()
         status_var.set("● 运行中")
         status_label.configure(bootstyle="success")
@@ -243,9 +337,12 @@ def open_main_window():
         sys.exit(0)
 
     ttkb.Button(btn_frame, text="▶  开始", command=start_script,
-                bootstyle="success", width=12).grid(row=0, column=0, padx=12, ipady=10)
+                bootstyle="success", width=12).grid(row=0, column=0, padx=10, ipady=8)
     ttkb.Button(btn_frame, text="■  停止", command=stop_script,
-                bootstyle="danger", width=12).grid(row=0, column=1, padx=12, ipady=10)
+                bootstyle="danger", width=12).grid(row=0, column=1, padx=10, ipady=8)
+
+    # 打开界面时自动检测一次
+    win.after(500, do_detect)
 
     def on_close():
         stop_ok_script()

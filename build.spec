@@ -15,6 +15,7 @@ datas = ok_datas + ttk_datas + ultra_datas + [
     ('retry.png', 'my'),
     ('assets', 'my/assets'),
     ('icons', 'my/icons'),
+    ('configs', 'my/configs'),
     ('global_state.py', 'my'),
 ]
 
