@@ -16,11 +16,12 @@ class AutoBattle(BaseTask):
         self.model = None
 
     def run(self):
+        import global_state
+        global_state.stop_flag = False
+
         self.info_set("状态", "开始")
         self.log_info("=== 开始 ===")
 
-        # ===== 用相对路径，找模型和图片 =====
-        # my_game/src/tasks/AutoBattle.py → 上三层是 my_game
         BASE_DIR = os.path.dirname(os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
 
         model_path = os.path.join(BASE_DIR, "best.pt")
@@ -43,6 +44,8 @@ class AutoBattle(BaseTask):
         self.info_set("状态", "等炮塔出现")
         box = None
         for i in range(60):
+            if global_state.stop_flag:
+                return
             retry_box = self.find_one(template=retry_tpl, threshold=0.7)
             if retry_box is not None:
                 self.info_set("状态", "检测到重新挑战，点击")
@@ -66,7 +69,6 @@ class AutoBattle(BaseTask):
         self.sleep(1)
         self.info_set("状态", "已在一号窗")
 
-        # ===== 先去三号打 1 秒，再回一号 =====
         self.info_set("状态", "先去三号打 1 秒")
         tpl_box = self.find_one(template=tpl, threshold=0.4)
         if tpl_box is not None:
@@ -85,13 +87,12 @@ class AutoBattle(BaseTask):
         current_window = 1
         phase = 2
 
-        while True:
+        while not global_state.stop_flag:
             frame = self.frame
             if frame is None:
                 self.sleep(0.5)
                 continue
 
-            # ===== 先检查有没有“重新挑战”弹窗 =====
             retry_box = self.find_one(template=retry_tpl, threshold=0.7)
             if retry_box is not None:
                 self.info_set("状态", "检测到重新挑战，点击")
@@ -100,6 +101,8 @@ class AutoBattle(BaseTask):
 
                 box = None
                 for i in range(60):
+                    if global_state.stop_flag:
+                        return
                     box = self.find_one(template=tpl, threshold=0.4)
                     if box is not None:
                         break
@@ -140,7 +143,6 @@ class AutoBattle(BaseTask):
             trx = cx + random.randint(-10, 10)
             try_ = cy + random.randint(-10, 10)
 
-            # ===== 阶段二 =====
             if phase == 2:
                 roi = frame[60:250, :]
                 roi_resized = cv2.resize(roi, (434, 190))
@@ -170,7 +172,6 @@ class AutoBattle(BaseTask):
                     self.info_set("状态", "一号窗已打完，进入阶段三")
                     phase = 3
 
-            # ===== 阶段三 =====
             elif phase == 3:
                 ammo_roi = frame[400:500, :]
                 hsv = cv2.cvtColor(ammo_roi, cv2.COLOR_BGR2HSV)
@@ -200,7 +201,6 @@ class AutoBattle(BaseTask):
                         self.swipe(trx, try_, [112, 250, 367][target-1], 835, duration=0.5)
                         current_window = target
 
-            # ===== 阶段四 =====
             elif phase == 4:
                 if current_window != 1:
                     self.info_set("状态", "阶段四：一直在一号窗")
