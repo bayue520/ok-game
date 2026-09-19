@@ -8,9 +8,8 @@ ttk_datas, ttk_binaries, ttk_hiddenimports = collect_all('ttkbootstrap')
 ultra_datas, ultra_binaries, ultra_hiddenimports = collect_all('ultralytics')
 torch_datas, torch_binaries, torch_hiddenimports = collect_all('torch')
 tv_datas, tv_binaries, tv_hiddenimports = collect_all('torchvision')
-pr_datas, pr_binaries, pr_hiddenimports = collect_all('pyarmor_runtime_000000')
 
-datas = ok_datas + ttk_datas + ultra_datas + torch_datas + tv_datas + pr_datas + [
+datas = ok_datas + ttk_datas + ultra_datas + torch_datas + tv_datas + [
     ('src', 'my/src'),
     ('best.pt', 'my'),
     ('tpl.png', 'my'),
@@ -20,13 +19,15 @@ datas = ok_datas + ttk_datas + ultra_datas + torch_datas + tv_datas + pr_datas +
     ('icons', 'my/icons'),
     ('configs', 'my/configs'),
     ('global_state.py', 'my'),
+    ('pyarmor_runtime_000000/pyarmor_runtime.pyd', 'my/pyarmor_runtime_000000'),
+    ('pyarmor_runtime_000000/__init__.py', 'my/pyarmor_runtime_000000'),
 ]
 
-binaries = ok_binaries + ttk_binaries + ultra_binaries + torch_binaries + tv_binaries + pr_binaries
+binaries = ok_binaries + ttk_binaries + ultra_binaries + torch_binaries + tv_binaries
 
 hiddenimports = (
     ok_hiddenimports + ttk_hiddenimports + ultra_hiddenimports
-    + torch_hiddenimports + tv_hiddenimports + pr_hiddenimports
+    + torch_hiddenimports + tv_hiddenimports
     + [
         'ok', 'ok.task', 'ok.task.task', 'ok.cli', 'ok.gui', 'ok.device',
         'ok.device.DeviceManager', 'ok.task.TaskExecutor',
@@ -37,7 +38,6 @@ hiddenimports = (
         'shapely', 'pyclipper', 'opencc', 'requests', 'urllib3',
         'certifi', 'charset_normalizer', 'idna',
         'torch', 'torchvision',
-        'pyarmor_runtime_000000',
     ]
 )
 
