@@ -2,7 +2,7 @@
     "preferred": "leidian0",
     "pc_full_path": "",
     "capture": "adb",
-    "selected_exe": "Weixin.exe",
-    "selected_hwnd": 66944,
+    "selected_exe": "",
+    "selected_hwnd": 0,
     "interaction": "Pynput"
 }

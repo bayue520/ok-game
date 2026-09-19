@@ -29,6 +29,12 @@ class AutoBattle(BaseTask):
         zero_path = os.path.join(BASE_DIR, "zero.png")
         retry_path = os.path.join(BASE_DIR, "retry.png")
 
+        self.log_info(f"BASE_DIR = {BASE_DIR}")
+        self.log_info(f"model_path = {model_path}, exists = {os.path.exists(model_path)}")
+        self.log_info(f"tpl_path = {tpl_path}, exists = {os.path.exists(tpl_path)}")
+        self.log_info(f"zero_path = {zero_path}, exists = {os.path.exists(zero_path)}")
+        self.log_info(f"retry_path = {retry_path}, exists = {os.path.exists(retry_path)}")
+
         self.model = YOLO(model_path)
 
         tpl = cv2.imread(tpl_path)
@@ -36,6 +42,9 @@ class AutoBattle(BaseTask):
         retry_tpl = cv2.imread(retry_path)
         if tpl is None or zero_tpl is None or retry_tpl is None:
             self.info_set("状态", "模板没读到")
+            self.log_info(f"tpl is None: {tpl is None}")
+            self.log_info(f"zero_tpl is None: {zero_tpl is None}")
+            self.log_info(f"retry_tpl is None: {retry_tpl is None}")
             return
 
         self.log_info("=== 点第五关 ===")
@@ -47,12 +56,14 @@ class AutoBattle(BaseTask):
             if global_state.stop_flag:
                 return
             retry_box = self.find_one(template=retry_tpl, threshold=0.7)
+            self.log_info(f"[等炮塔] retry_box = {retry_box}")
             if retry_box is not None:
                 self.info_set("状态", "检测到重新挑战，点击")
                 self.click_box(retry_box)
                 self.sleep(2)
                 continue
             box = self.find_one(template=tpl, threshold=0.4)
+            self.log_info(f"[等炮塔] tpl_box = {box}")
             if box is not None:
                 break
             self.sleep(0.5)
@@ -94,6 +105,7 @@ class AutoBattle(BaseTask):
                 continue
 
             retry_box = self.find_one(template=retry_tpl, threshold=0.7)
+            self.log_info(f"[主循环] retry_box = {retry_box}")
             if retry_box is not None:
                 self.info_set("状态", "检测到重新挑战，点击")
                 self.click_box(retry_box)
@@ -104,6 +116,7 @@ class AutoBattle(BaseTask):
                     if global_state.stop_flag:
                         return
                     box = self.find_one(template=tpl, threshold=0.4)
+                    self.log_info(f"[重挑后等炮塔] tpl_box = {box}")
                     if box is not None:
                         break
                     self.sleep(0.5)
