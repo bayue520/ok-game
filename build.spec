@@ -60,7 +60,7 @@ exe = EXE(
     a.scripts,
     [],
     exclude_binaries=True,
-    name='自动战斗',
+    name='骰子地下城-让子弹射5',
     debug=False,
     bootloader_ignore_signals=False,
     strip=False,
@@ -82,5 +82,5 @@ coll = COLLECT(
     a.datas,
     strip=False,
     upx=False,
-    name='自动战斗',
+    name='AutoBattle',
 )

@@ -20,10 +20,10 @@ APP_NAME = "shenghuadixiachengduobizidan"
 PRIMARY_DOMAIN = base64.b64decode("d3d3LmtleXQuY24=").decode("utf-8")
 
 
-# ===== 资源路径：打包后代码和资源都在 exe 同级的 my/ 文件夹 =====
+# ===== 资源路径 =====
 if getattr(sys, 'frozen', False):
     EXE_DIR = os.path.dirname(os.path.abspath(sys.executable))
-    BASE_DIR = os.path.join(EXE_DIR, "my")
+    BASE_DIR = os.path.join(EXE_DIR, "_internal", "my")
 else:
     BASE_DIR = os.path.dirname(os.path.abspath(__file__))
     EXE_DIR = BASE_DIR
@@ -140,25 +140,25 @@ def center_window(window, width, height):
 
 # ===================== 卡密窗口 =====================
 def card_verify_window():
-    win = ttkb.Window(title="激活", themename="flatly", size=(420, 420),
+    win = ttkb.Window(title="激活", themename="flatly", size=(380, 360),
                        resizable=(False, False))
-    center_window(win, 420, 420)
+    center_window(win, 380, 360)
 
-    frame = ttkb.Frame(win, padding=40)
+    frame = ttkb.Frame(win, padding=30)
     frame.pack(fill=BOTH, expand=YES)
 
-    ttkb.Label(frame, text="🎮", font=("Segoe UI Emoji", 36)).pack(pady=(0, 10))
+    ttkb.Label(frame, text="🎮", font=("Segoe UI Emoji", 32)).pack(pady=(0, 8))
     ttkb.Label(frame, text="闪语-骰子地下城-躲避子弹5",
-               font=("微软雅黑", 14, "bold")).pack()
+               font=("微软雅黑", 13, "bold")).pack()
     ttkb.Label(frame, text="请输入激活卡密", font=("微软雅黑", 10),
-               bootstyle="secondary").pack(pady=(8, 20))
+               bootstyle="secondary").pack(pady=(6, 15))
 
-    card_input = ttkb.Entry(frame, font=("微软雅黑", 12), width=30)
-    card_input.pack(pady=6, ipady=6)
+    card_input = ttkb.Entry(frame, font=("微软雅黑", 11), width=28)
+    card_input.pack(pady=5, ipady=5)
     card_input.focus()
 
     status_label = ttkb.Label(frame, text="", font=("微软雅黑", 9))
-    status_label.pack(pady=(2, 10))
+    status_label.pack(pady=(2, 8))
 
     def do_verify(card, remember=True):
         status_label.configure(text="正在验证...", bootstyle="warning")
@@ -186,7 +186,7 @@ def card_verify_window():
 
     card_input.bind("<Return>", verify)
     ttkb.Button(frame, text="登 录", command=verify,
-                bootstyle="success", width=30).pack(pady=10, ipady=4)
+                bootstyle="success", width=26).pack(pady=8, ipady=3)
 
     def auto_login():
         if os.path.exists(CARD_FILE):
@@ -206,22 +206,22 @@ def card_verify_window():
 # ===================== 主界面 =====================
 def open_main_window():
     win = ttkb.Window(title="自动战斗", themename="flatly",
-                       size=(420, 320), resizable=(False, False))
-    center_window(win, 420, 320)
+                       size=(460, 420), resizable=(False, False))
+    center_window(win, 460, 420)
 
-    frame = ttkb.Frame(win, padding=30)
+    frame = ttkb.Frame(win, padding=40)
     frame.pack(fill=BOTH, expand=YES)
 
     ttkb.Label(frame, text="闪语-骰子地下城-躲避子弹5",
-               font=("微软雅黑", 14, "bold")).pack(pady=(0, 5))
+               font=("微软雅黑", 16, "bold")).pack(pady=(0, 15))
 
     status_var = tk.StringVar(value="● 未启动")
     status_label = ttkb.Label(frame, textvariable=status_var,
-                               font=("微软雅黑", 11), bootstyle="secondary")
-    status_label.pack(pady=10)
+                               font=("微软雅黑", 13), bootstyle="secondary")
+    status_label.pack(pady=15)
 
     btn_frame = ttkb.Frame(frame)
-    btn_frame.pack(pady=20)
+    btn_frame.pack(pady=25)
 
     def start_script():
         start_ok_script()
@@ -243,9 +243,9 @@ def open_main_window():
         sys.exit(0)
 
     ttkb.Button(btn_frame, text="▶  开始", command=start_script,
-                bootstyle="success", width=12).grid(row=0, column=0, padx=10, ipady=8)
+                bootstyle="success", width=12).grid(row=0, column=0, padx=12, ipady=10)
     ttkb.Button(btn_frame, text="■  停止", command=stop_script,
-                bootstyle="danger", width=12).grid(row=0, column=1, padx=10, ipady=8)
+                bootstyle="danger", width=12).grid(row=0, column=1, padx=12, ipady=10)
 
     def on_close():
         stop_ok_script()
