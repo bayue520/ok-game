@@ -41,9 +41,13 @@ jobs:
         run: |
           pyinstaller build.spec --clean --noconfirm
 
+      - name: Zip output
+        run: |
+          Compress-Archive -Path dist/自动战斗/* -DestinationPath dist/自动战斗.zip
+
       - name: Release
         uses: softprops/action-gh-release@v2
         if: startsWith(github.ref, 'refs/tags/')
         with:
           draft: false
-          files: dist/*.exe
+          files: dist/自动战斗.zip
