@@ -15,10 +15,6 @@ jobs:
     env:
       PYTHONIOENCODING: 'UTF-8'
 
-    strategy:
-      matrix:
-        python-version: [ 3.12 ]
-
     steps:
       - name: Configure git
         run: |
@@ -30,32 +26,23 @@ jobs:
         with:
           lfs: true
 
-      - name: Set up Python ${{ matrix.python-version }}
-        uses: actions/setup-python@v2
+      - name: Set up Python 3.12
+        uses: actions/setup-python@v5
         with:
-          python-version: ${{ matrix.python-version }}
-
-      - name: Set UTF-8 encoding
-        run: |
-          set PYTHONIOENCODING=utf-8
-          set PYTHONLEGACYWINDOWSSTDIO=utf-8
-          echo PYTHONIOENCODING=utf-8 >> $GITHUB_ENV
+          python-version: '3.12'
 
       - name: Install dependencies
         run: |
           pip install --no-deps -r requirements.txt
+          pip install pyinstaller
 
-      - name: inline_ok_requirements
+      - name: Build with PyInstaller
         run: |
-          python -m ok.update.inline_ok_requirements --tag ${{ github.ref_name }}
-
-      - name: Build with PyAppify Action
-        id: build-app
-        uses: ok-oldking/pyappify-action@master
+          pyinstaller build.spec --clean --noconfirm
 
       - name: Release
         uses: softprops/action-gh-release@v2
         if: startsWith(github.ref, 'refs/tags/')
         with:
           draft: false
-          files: pyappify_dist/*
+          files: dist/*.exe
