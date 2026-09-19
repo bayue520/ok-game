@@ -1,0 +1,15 @@
+.venv/
+.git/
+__pycache__/
+*.pyc
+*.pyd
+*.c
+*.build/
+*.dist/
+*.onefile-build/
+*.exe
+debug.txt
+ok_log.txt
+cache/
+logs/
+screenshots/
