@@ -60,7 +60,7 @@ exe = EXE(
     a.scripts,
     [],
     exclude_binaries=True,
-    name='骰子地下城-让子弹射5',
+    name='AutoBattle',
     debug=False,
     bootloader_ignore_signals=False,
     strip=False,
