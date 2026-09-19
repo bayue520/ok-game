@@ -8,14 +8,14 @@ ttk_datas, ttk_binaries, ttk_hiddenimports = collect_all('ttkbootstrap')
 ultra_datas, ultra_binaries, ultra_hiddenimports = collect_all('ultralytics')
 
 datas = ok_datas + ttk_datas + ultra_datas + [
-    ('src', 'src'),
-    ('best.pt', '.'),
-    ('tpl.png', '.'),
-    ('zero.png', '.'),
-    ('retry.png', '.'),
-    ('assets', 'assets'),
-    ('icons', 'icons'),
-    ('global_state.py', '.'),
+    ('src', 'my/src'),
+    ('best.pt', 'my'),
+    ('tpl.png', 'my'),
+    ('zero.png', 'my'),
+    ('retry.png', 'my'),
+    ('assets', 'my/assets'),
+    ('icons', 'my/icons'),
+    ('global_state.py', 'my'),
 ]
 
 binaries = ok_binaries + ttk_binaries + ultra_binaries
@@ -58,10 +58,8 @@ pyz = PYZ(a.pure, a.zipped_data, cipher=block_cipher)
 exe = EXE(
     pyz,
     a.scripts,
-    a.binaries,
-    a.zipfiles,
-    a.datas,
     [],
+    exclude_binaries=True,
     name='自动战斗',
     debug=False,
     bootloader_ignore_signals=False,
@@ -75,4 +73,14 @@ exe = EXE(
     codesign_identity=None,
     entitlements_file=None,
     icon='icons/icon.ico',
+)
+
+coll = COLLECT(
+    exe,
+    a.binaries,
+    a.zipfiles,
+    a.datas,
+    strip=False,
+    upx=False,
+    name='自动战斗',
 )
