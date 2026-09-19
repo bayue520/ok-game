@@ -1,6 +1,5 @@
 import tkinter as tk
 from tkinter import messagebox
-import subprocess
 import sys
 import os
 import uuid
@@ -10,6 +9,7 @@ import urllib.request
 import urllib.parse
 import ssl
 import base64
+import threading
 
 import ttkbootstrap as ttkb
 from ttkbootstrap.constants import *
@@ -19,55 +19,58 @@ USER_ID = "xiaoyin1110"
 APP_NAME = "shenghuadixiachengduobizidan"
 PRIMARY_DOMAIN = base64.b64decode("d3d3LmtleXQuY24=").decode("utf-8")
 
-
-# ===== 路径：PyInstaller 单 exe 模式 =====
-if getattr(sys, 'frozen', False):
-    # PyInstaller 打包后，资源解压到 _MEIPASS 临时目录
-    BASE_DIR = sys._MEIPASS
-    # 但是 ok-script 需要 src/、best.pt 等文件在真实目录里运行
-    # 所以把 exe 所在目录也作为工作目录
+# ===== 资源路径：PyInstaller 单 exe =====
+if getattr(sys, 'frozen', False) and hasattr(sys, '_MEIPASS'):
+    BASE_DIR = sys._MEIPASS          # 打包后的资源解压目录
     EXE_DIR = os.path.dirname(os.path.abspath(sys.executable))
 else:
     BASE_DIR = os.path.dirname(os.path.abspath(__file__))
     EXE_DIR = BASE_DIR
+
+# 让 ok-script 能找到 src/、模型文件等
+os.chdir(BASE_DIR)
 
 # ok-script 任务配置
 OK_SCRIPT_TASK = "AutoBattle"
 OK_SCRIPT_CONFIG = "src.config:config"
 
 ok_process = None
+running_flag = False
+
+
+# ===================== 自动化线程 =====================
+def auto_battle_logic():
+    """在后台线程中运行 ok-script 任务（无 GUI 模式）"""
+    global running_flag
+    try:
+        # 无界面模式下，直接用 ok 的 CLI 逻辑跑任务
+        # 这里不启动子进程，而是直接调用 ok 的命令行入口
+        from ok.cli import main as ok_cli_main
+        # 模拟命令行参数：ok run_task AutoBattle --config src.config:config
+        sys.argv = ["ok", "run_task", OK_SCRIPT_TASK, "--config", OK_SCRIPT_CONFIG]
+        ok_cli_main()
+    except Exception as e:
+        print(f"自动化运行出错: {e}")
+    finally:
+        running_flag = False
 
 
 def start_ok_script():
-    global ok_process
-    if ok_process is not None and ok_process.poll() is None:
+    global running_flag, ok_process
+    if running_flag:
         return
-
-    # PyInstaller 打包后，python 用系统的，ok-script 用打包进去的
-    python_exe = sys.executable if getattr(sys, 'frozen', False) else "python"
-
-    try:
-        log_path = os.path.join(EXE_DIR, "ok_log.txt")
-        log_file = open(log_path, "w", encoding="utf-8")
-        ok_process = subprocess.Popen(
-            [python_exe, "-m", "ok", "run_task", OK_SCRIPT_TASK,
-             "--config", OK_SCRIPT_CONFIG],
-            cwd=EXE_DIR,
-            stdout=log_file,
-            stderr=log_file,
-            creationflags=subprocess.CREATE_NO_WINDOW
-        )
-    except Exception as e:
-        print(f"Popen异常: {e}")
+    running_flag = True
+    # 用 daemon 线程，关闭主窗口时自动退出
+    t = threading.Thread(target=auto_battle_logic, daemon=True)
+    t.start()
 
 
 def stop_ok_script():
-    global ok_process
-    if ok_process is not None and ok_process.poll() is None:
-        ok_process.terminate()
-        ok_process = None
+    global running_flag
+    running_flag = False
 
 
+# ===================== 卡密验证 =====================
 def get_machine_code():
     try:
         mac = uuid.UUID(int=uuid.getnode()).hex[-12:].upper()
