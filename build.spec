@@ -6,8 +6,10 @@ block_cipher = None
 ok_datas, ok_binaries, ok_hiddenimports = collect_all('ok')
 ttk_datas, ttk_binaries, ttk_hiddenimports = collect_all('ttkbootstrap')
 ultra_datas, ultra_binaries, ultra_hiddenimports = collect_all('ultralytics')
+torch_datas, torch_binaries, torch_hiddenimports = collect_all('torch')
+tv_datas, tv_binaries, tv_hiddenimports = collect_all('torchvision')
 
-datas = ok_datas + ttk_datas + ultra_datas + [
+datas = ok_datas + ttk_datas + ultra_datas + torch_datas + tv_datas + [
     ('src', 'my/src'),
     ('best.pt', 'my'),
     ('tpl.png', 'my'),
@@ -15,13 +17,15 @@ datas = ok_datas + ttk_datas + ultra_datas + [
     ('retry.png', 'my'),
     ('assets', 'my/assets'),
     ('icons', 'my/icons'),
+    ('configs', 'my/configs'),
     ('global_state.py', 'my'),
 ]
 
-binaries = ok_binaries + ttk_binaries + ultra_binaries
+binaries = ok_binaries + ttk_binaries + ultra_binaries + torch_binaries + tv_binaries
 
 hiddenimports = (
     ok_hiddenimports + ttk_hiddenimports + ultra_hiddenimports
+    + torch_hiddenimports + tv_hiddenimports
     + [
         'ok', 'ok.task', 'ok.task.task', 'ok.cli', 'ok.gui', 'ok.device',
         'ok.device.DeviceManager', 'ok.task.TaskExecutor',
@@ -31,6 +35,7 @@ hiddenimports = (
         'pynput', 'pydirectinput', 'comtypes', 'pycaw', 'adbutils',
         'shapely', 'pyclipper', 'opencc', 'requests', 'urllib3',
         'certifi', 'charset_normalizer', 'idna',
+        'torch', 'torchvision',
     ]
 )
 
