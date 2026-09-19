@@ -50,7 +50,7 @@ config = {
     'debug': False,
     'gui': gui_config,
     'config_folder': 'configs',
-    'global_configs': [key_config_option, card_config_option],   # ← 加了 card_config_option
+    'global_configs': [key_config_option, card_config_option],
     'screenshot_processor': make_bottom_right_black,
     'gui_icon': 'icons/icon.png',
     'wait_until_before_delay': 0,
@@ -106,5 +106,6 @@ config = {
         ["src.tasks.MyOneTimeTask", "MyOneTimeTask"],
         ["ok", "DiagnosisTask"],
         ["src.tasks.AutoBattle", "AutoBattle"],
+        ["src.tasks.LoginTask", "LoginTask"],
     ],
 }
