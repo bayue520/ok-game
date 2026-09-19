@@ -103,9 +103,6 @@ config = {
     'version': version,
     'my_app': ['src.globals', 'Globals'],
     'onetime_tasks': [
-        ["src.tasks.MyOneTimeTask", "MyOneTimeTask"],
-        ["ok", "DiagnosisTask"],
         ["src.tasks.AutoBattle", "AutoBattle"],
-        ["src.tasks.LoginTask", "LoginTask"],
     ],
 }
