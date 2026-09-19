@@ -10,6 +10,7 @@ import urllib.parse
 import ssl
 import base64
 import threading
+import shutil
 
 import ttkbootstrap as ttkb
 from ttkbootstrap.constants import *
@@ -19,10 +20,36 @@ USER_ID = "xiaoyin1110"
 APP_NAME = "shenghuadixiachengduobizidan"
 PRIMARY_DOMAIN = base64.b64decode("d3d3LmtleXQuY24=").decode("utf-8")
 
+
 # ===== 资源路径 =====
-if getattr(sys, 'frozen', False) and hasattr(sys, '_MEIPASS'):
-    BASE_DIR = sys._MEIPASS
+def extract_resources():
+    """把打包进 exe 的资源释放到 exe 所在目录（仅打包后运行）"""
+    if not getattr(sys, 'frozen', False):
+        return
+    meipass = getattr(sys, '_MEIPASS', None)
+    if not meipass:
+        return
+    exe_dir = os.path.dirname(os.path.abspath(sys.executable))
+    items = ['src', 'best.pt', 'tpl.png', 'zero.png', 'retry.png', 'assets', 'icons']
+    for item in items:
+        src = os.path.join(meipass, item)
+        dst = os.path.join(exe_dir, item)
+        if not os.path.exists(src):
+            continue
+        try:
+            if os.path.isdir(src):
+                if os.path.exists(dst):
+                    shutil.rmtree(dst, ignore_errors=True)
+                shutil.copytree(src, dst)
+            else:
+                shutil.copy2(src, dst)
+        except Exception as e:
+            print(f"释放 {item} 失败: {e}")
+
+
+if getattr(sys, 'frozen', False):
     EXE_DIR = os.path.dirname(os.path.abspath(sys.executable))
+    BASE_DIR = EXE_DIR
 else:
     BASE_DIR = os.path.dirname(os.path.abspath(__file__))
     EXE_DIR = BASE_DIR
@@ -30,7 +57,6 @@ else:
 os.chdir(BASE_DIR)
 sys.path.insert(0, BASE_DIR)
 
-# ===== 卡密保存文件 =====
 CARD_FILE = os.path.join(EXE_DIR, "card.txt")
 
 running_flag = False
@@ -231,7 +257,6 @@ def open_main_window():
         stop_ok_script()
         status_var.set("● 已停止")
         status_label.configure(bootstyle="danger")
-        # 关闭整个软件
         try:
             win.quit()
         except Exception:
@@ -256,4 +281,5 @@ def open_main_window():
 
 
 if __name__ == "__main__":
+    extract_resources()
     card_verify_window()
