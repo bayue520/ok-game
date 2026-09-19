@@ -1,0 +1,66 @@
+import os
+import sys
+import subprocess
+from setuptools import find_packages, setup
+from setuptools.extension import Extension
+from Cython.Build import cythonize
+
+is_macos = sys.platform == "darwin"
+
+extra_compile_args = [
+    "-O3",
+    "-fPIC",
+    "-fvisibility=hidden",
+    "-fdata-sections",
+    "-ffunction-sections",
+    "-flto",
+]
+
+extra_link_args = []
+
+if not is_macos:
+    # Linux-only flags
+    extra_link_args += [
+        "-Wl,--gc-sections",
+        "-Wl,--strip-all"
+    ]
+else:
+    # macOS-safe alternatives (strip done manually later)
+    pass  # macOS will error on unknown linker flags
+
+# Define extension
+ext = Extension(
+    name="codeenigma_runtime",
+    sources=["codeenigma_runtime.pyx"],
+    extra_compile_args=extra_compile_args,
+    extra_link_args=extra_link_args,
+    language="c",
+)
+
+setup(
+    name="codeenigma_runtime",
+    version='1.2.0',
+    ext_modules=cythonize(
+        [ext],
+        compiler_directives={
+            "language_level": "3",
+            "boundscheck": False,
+            "wraparound": False,
+            "initializedcheck": False,
+            "nonecheck": False,
+            "cdivision": True,
+            "c_string_type": "str",
+            "c_string_encoding": "utf8",
+        },
+        nthreads=4,
+    ),
+    packages=find_packages(),
+    zip_safe=False,
+)
+
+try:
+    so_file = next(p for p in os.listdir('.') if p.startswith("codeenigma_runtime") and p.endswith(".so"))
+    print(f"Stripping binary: {so_file}")
+    subprocess.run(["strip", "-x", so_file], check=True)
+except Exception as e:
+    print(f"[Warning] Could not strip shared object: {e}")

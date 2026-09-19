@@ -19,6 +19,7 @@ datas = ok_datas + ttk_datas + ultra_datas + torch_datas + tv_datas + [
     ('icons', 'my/icons'),
     ('configs', 'my/configs'),
     ('global_state.py', 'my'),
+    ('pyarmor_runtime_000000', 'my/pyarmor_runtime_000000'),
 ]
 
 binaries = ok_binaries + ttk_binaries + ultra_binaries + torch_binaries + tv_binaries
@@ -36,6 +37,7 @@ hiddenimports = (
         'shapely', 'pyclipper', 'opencc', 'requests', 'urllib3',
         'certifi', 'charset_normalizer', 'idna',
         'torch', 'torchvision',
+        'pyarmor_runtime_000000',
     ]
 )
 
